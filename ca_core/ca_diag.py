@@ -6,8 +6,8 @@ import platform
 import subprocess
 import sys
 
-AUTHOR = {'company': 'Chris Adam Modellbau', 'street': 'Riesebusch 17', 'city': '23611 Bad Schwartau',
-          'mail': 'chris.n.adam@gmx.de', 'phone': '0176 99229588', 'year': '2026'}
+AUTHOR = {'company': 'Chris Adam Modellbau',
+          'mail': 'chris.n.adam@gmx.de', 'year': '2026'}
 SLOGANS = {
     'lazynest': '„Nesting für Macher und faule Typen, denn nur durch Faulheit entsteht Innovation!“',
     'lazysetup': '„Fräsen vorbereiten für Macher und faule Typen, denn nur durch Faulheit entsteht Innovation!“',

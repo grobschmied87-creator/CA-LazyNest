@@ -70,10 +70,8 @@
     $('caSlogan').textContent = C.info.slogan || '';
     var ad = $('caAddr'); ad.innerHTML = '';
     ad.appendChild(document.createTextNode('© ' + (a.year || '2026') + ' ' + (a.company || ''))); el('br', {}, ad);
-    ad.appendChild(document.createTextNode((a.street || '') + ', ' + (a.city || ''))); el('br', {}, ad);
     ad.appendChild(document.createTextNode('E-Mail: '));
     el('a', { href: 'mailto:' + (a.mail || '') }, ad, a.mail || '');
-    ad.appendChild(document.createTextNode(' · Tel. ' + (a.phone || '')));
     renderDonate();
     setTheme(C.theme);
   }
