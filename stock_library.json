@@ -1,0 +1,806 @@
+{
+ "format": "ContourNest-Rohteilbibliothek",
+ "schema": 1,
+ "hinweis": "Editierbar. Maße in mm, Formate [Länge, Breite] (Länge = X). grain: 'X' = Faser/Walzrichtung entlang der Länge, 'Y' = entlang der Breite. unverified_*: Werte, die in der Recherche (Okt. 2026) nicht durch eine Quelle bestätigt wurden. density in kg/m³ (optional). Eigene Vorlagen landen in user_stock.json (wird automatisch zusammengeführt).",
+ "stand": "2026-10-09",
+ "sources": {
+  "egger_td": {
+   "title": "EGGER Eurodekor Technisches Datenblatt (Thalhofer)",
+   "url": "https://shop.thalhofer.de/produktdaten/daten/RAafjDiNMusXigfUCrat.pdf"
+  },
+  "holztusche": {
+   "title": "Holz-Tusche: EGGER Dekorspanplatte Eurodekor W980",
+   "url": "https://www.holztusche.de/egger-dekorspanplatte-eurodekor-w980-sm-semi-matt-platinweiss/06100000067"
+  },
+  "dds": {
+   "title": "dds-online: Dekorvielfalt trotz Brandschutz (EGGER 5610er-Format)",
+   "url": "https://www.dds-online.de/technik/dekorvielfalt-trotz-brandschutz/"
+  },
+  "becher_span": {
+   "title": "BECHER Profi-Shop: 22 mm EGGER Eurodekor 2800 x 2070",
+   "url": "https://shop.becher-holz.de/22-mm-EGGER-Eurodekor-E1E05-TSCA-P2-CE-W980-ST7-Platinweiss-perl-100-PEFC-zert-Format-2800-x-2070-mm/p/1000053703"
+  },
+  "egger_epd": {
+   "title": "EGGER Umwelt-Produktdeklaration Eurodekor (Rohdichte 655 kg/m³), bezogen über ghz-cham.de",
+   "url": "https://www.ghz-cham.de"
+  },
+  "kronospan_mdf": {
+   "title": "Kronospan: Mitteldichte Faserplatte (MDF)",
+   "url": "https://www.kronospan.com/de_DE/products/view/kronobuild/faserplatte/mitteldichte-faserplatte-mdf/mitteldichte-faserplatte-mdf-703/"
+  },
+  "whg_mdf": {
+   "title": "WHG Coswig: MDF-Platten Lieferprogramm (PDF)",
+   "url": "https://www.whg-coswig.de/publish/binarydata/dateien/coswig_mdf-platten.pdf"
+  },
+  "keppler_mdf": {
+   "title": "Keppler Holz: MDF-Platte roh",
+   "url": "https://www.keppler-holz.de/products/mdf-platte-roh"
+  },
+  "holzland_hdf": {
+   "title": "HolzLand: HDF-Platte roh 2800 x 2070 x 3 mm",
+   "url": "https://www.holzland.de/p/hdf-platte-roh/HL1031089/"
+  },
+  "hansa_hdf": {
+   "title": "Hansa Holz: 3 mm HDF-Platte 2070 x 2800",
+   "url": "https://www.hansaholz.de/katalog/plattenwerkstoffe/hdf-platten/3-mm-hdf-platte-2070-x-2800-mm-roh/"
+  },
+  "ip_hdf": {
+   "title": "International Plywood: HDF 2440 x 1220 x 3 mm",
+   "url": "https://www.internationalplywood.nl/en_US/p/hdf-pefc-2440x1220x3mm/200/"
+  },
+  "holzland_mpx": {
+   "title": "HolzLand: Multiplexplatte Birke BB/BB 2500 x 1250",
+   "url": "https://www.holzland.de/p/multiplexplatte-birke-dd-bfu100-bbbb-laengsfurniert/HL808727/"
+  },
+  "express_mpx": {
+   "title": "expresszuschnitt.de: Birke Multiplex",
+   "url": "https://expresszuschnitt.de/Multiplexplatte-Birke-Multiplex"
+  },
+  "keppler_mpx": {
+   "title": "Keppler Holz: Birke Multiplex BB/CP 1,25 x 2,50 m (4 mm)",
+   "url": "https://www.keppler-holz.de/products/birke-multiplex"
+  },
+  "wertheimer_mpx": {
+   "title": "Wertheimer: Multiplexplatte Birke BB/BB 30 x 1250 x 2500",
+   "url": "https://wertheimer-shop.de/Multiplexplatte-Birke-BBBB-BFU100-30x1250x2500-mm/p/35400673"
+  },
+  "gj_mpx": {
+   "title": "G&J Shop / Holzzentrum: Multiplex Birke 3000 x 1500, 2500 x 1500, 5500 x 1250 (geschäftet)",
+   "url": "https://www.holzzentrum.de"
+  },
+  "hkd_sieb": {
+   "title": "holzkaufendirekt.de: Birke Siebdruckplatte 9–30 mm",
+   "url": "https://holzkaufendirekt.de/shop/birke-siebdruckplatte-sieb-film/"
+  },
+  "hz_sieb": {
+   "title": "A&J Holzzentrum: Siebdruckplatte Birke 3000 x 1500",
+   "url": "https://www.holzzentrum.de/siebdruckplatte/3000-x-1500-mm-birke-wisa-wire-9-mm"
+  },
+  "rombs_sieb": {
+   "title": "Rombs Ratgeber: Siebdruckplatte 9–30 mm",
+   "url": "https://rombs-gmbh.de/ratgeber/plattenwerkstoffe/siebdruckplatte-staerke-guide/"
+  },
+  "bedarf_osb": {
+   "title": "Bedarfsmarkt: OSB/3 2500 x 1250 in diversen Stärken",
+   "url": "https://www.bedarfsmarkt.de/angebote/osb-3-platten-2500x1250-en-300-en-13986-2-in-diversen-staerken/14749"
+  },
+  "raab_osb": {
+   "title": "Raab Karcher: OSB/3 ContiFinish 2500 x 1250",
+   "url": "https://www.raabkarcher.de/produkte/trockenbauplatten/grobspanplatte-osb-3-platte-contifinish-en300-2500x1250-mm-stumpf/p/660914"
+  },
+  "hornbach_osb": {
+   "title": "HORNBACH: OSB/3 Verlegeplatte 2500 x 1250 x 15 mm N+F",
+   "url": "https://www.hornbach.de/p/osb3-verlegeplatte-2500-x-1250-x-15-mm-mit-nut-und-feder-e1-ungeschliffen/5862457/"
+  },
+  "deg_osb": {
+   "title": "DEG Süd: Glunz AGEPAN OSB/3 25 mm 2500 x 1250",
+   "url": "https://www.deg-sued.de/dde/de/Sortiment/Rohbau-&-Fassade/Holz-&-Holzwerkstoffe/Holzwerkstoffe/OSB-Platten/Glunz-AGEPAN-OSB-3-25-mm-2500x1250-mm-4-x-Nut-Feder-Verlegeplatte-ungeschliffen-EN13986/300/p/6215498"
+  },
+  "osb_misc": {
+   "title": "baustoffshop.de / baywa-baustoffe.de: OSB/3 Verlegeplatten 2500 x 675 / 2500 x 625",
+   "url": "https://www.baywa-baustoffe.de"
+  },
+  "roeren_tp": {
+   "title": "Holz Roeren: Tischlerplatten (Tabelle Stärke/Format, Rohdichte ~450 kg/m³)",
+   "url": "https://www.holz-roeren.de/bauen/plattenwerkstoffe/tischlerplatten/"
+  },
+  "mhp_6883": {
+   "title": "massivholzplatten-shop.de: Produktdatenblatt 6883 (3000 x 1220)",
+   "url": "https://www.massivholzplatten-shop.de/files/downloads/pdf/6883_D_Produktdatenblatt.pdf"
+  },
+  "mhp_6962": {
+   "title": "massivholzplatten-shop.de: Produktdatenblatt 6962",
+   "url": "https://www.massivholzplatten-shop.de/files/downloads/pdf/6962_D_Produktdatenblatt.pdf"
+  },
+  "wiegand_lh": {
+   "title": "Holz-Wiegand: Leimholzplatte Kiefer durchgehend 18 x 5000 x 1220",
+   "url": "https://shop.holz-wiegand.com/1926/leimholzplatte-kiefer-durchgehend-18x5000x1220-mm/"
+  },
+  "theile_lh": {
+   "title": "Theile Elsterwerda: Leimholzplatte 1-Schicht 5000 x 1220 x 42 mm",
+   "url": "https://theile-elsterwerda.de/leimholzplatte-1-schicht-5000-x-1220-x-42-mm-9292"
+  },
+  "fundermax": {
+   "title": "Fundermax: Max Compact Interior",
+   "url": "https://www.fundermax.com/de/Portfolio/Interior/Max%20Compact%20Interior"
+  },
+  "roggemann_hpl": {
+   "title": "Roggemann: HPL-Kompaktplatten (Katalog)",
+   "url": "https://www.rogmediacenter.de/Kataloge/HPL_Kompaktplatten/files/downloads/HPL_Kompaktplatten_L%c3%bcneburg.pdf"
+  },
+  "kronoplan": {
+   "title": "Plastic-Team: Kronoplan HPL-Kompaktplatten Planerunterlagen",
+   "url": "https://www.plastic-team.de/wp-content/uploads/2014/01/HPL_Kronoplan_Kompaktplatten_Planerunterlagen.pdf"
+  },
+  "elbemetall": {
+   "title": "ELBEMETALL Ratgeber: Blechformate (Klein/Mittel/Groß/Maxi)",
+   "url": "https://www.elbemetall.de/ratgeber/blechformate"
+  },
+  "stoll": {
+   "title": "Stoll Feinblechtechnik: Blechformate",
+   "url": "https://www.stoll-feinblechtechnik.de/glossar/blechformate/"
+  },
+  "wiki_blech": {
+   "title": "Wikipedia: Blech",
+   "url": "https://de.wikipedia.org/wiki/Blech"
+  },
+  "vbe_dc01": {
+   "title": "VBE: Flachprodukte – Feinblech DC01 kaltgewalzt (PDF)",
+   "url": "https://www.vbe-hd.de/fileadmin/redakteurupload/downloads/Walzstahl_einzel_PDFS/Flachprodukte.pdf"
+  },
+  "kicherer_st": {
+   "title": "Kicherer: Stahl Flachprodukte (PDF)",
+   "url": "https://www.kicherer.de/fileadmin/user_upload/bilder/pdf/Stahlkatalog/Stahl_Flachprodukte.pdf"
+  },
+  "kloeckner": {
+   "title": "Klöckner: Lieferprogramm Flach (PDF)",
+   "url": "https://www.kloeckner.de/dam/f/333230/595x842/e7a68ba167/kcd_lieferprogramm_flach-pdf.pdf?v=1761956933070"
+  },
+  "kerschgens": {
+   "title": "Kerschgens: Lieferprogramm Edelstahlbleche (PDF)",
+   "url": "https://www.kerschgens.de/app/uploads/2026/08/Kerschgens_Lieferprogramm_Edelstahlbleche.pdf"
+  },
+  "riba": {
+   "title": "Riba Edelstahl: Lieferprogramm Bleche (PDF)",
+   "url": "https://www.riba-edelstahl.de/medium/Lieferprogramm-Bleche.pdf?m=54"
+  },
+  "guenzler_al": {
+   "title": "Günzler Metall: Aluminium-Lieferprogramm (PDF)",
+   "url": "https://www.guenzler-metall.de/wp-content/uploads/2023/10/Aluminium-Lieferprogramm-komplett.pdf"
+  },
+  "kicherer_al": {
+   "title": "Kicherer: Aluminiumbleche (PDF)",
+   "url": "https://www.kicherer.de/fileadmin/user_upload/bilder/pdf/Stahlkatalog/Aluminiumbleche.pdf"
+  },
+  "heitzmann_al": {
+   "title": "Heitzmann: Lieferprogramm Alu/Messing (PDF)",
+   "url": "https://heitzmanngmbh.de/wp-content/uploads/2025/03/Lieferprogramm-Alu-Messing-0325.pdf"
+  },
+  "wickert_mdf": {
+   "title": "Wickert Holz: MDF-Lieferprogramm (PDF; 3–40 mm, 2800/4100 x 2070)",
+   "url": "https://www.wickert.net"
+  },
+  "osterwald_mdf": {
+   "title": "Osterwald Holzhandlung: MDF 2440 x 1220 x 3 mm",
+   "url": "https://www.osterwald-holzhandlung.de"
+  }
+ },
+ "materials": [
+  {
+   "group": "Holzwerkstoff",
+   "material": "Spanplatte melaminbeschichtet (Dekorspan)",
+   "formats": [
+    [
+     2800,
+     2070
+    ],
+    [
+     4110,
+     2070
+    ],
+    [
+     5610,
+     2070
+    ]
+   ],
+   "thicknesses": [
+    8,
+    10,
+    12,
+    15,
+    16,
+    19,
+    22,
+    25,
+    28,
+    32,
+    38
+   ],
+   "format_thicknesses": {
+    "5610x2070": [
+     12,
+     16,
+     19,
+     22,
+     25,
+     28,
+     38
+    ]
+   },
+   "grain": "X",
+   "density": 655,
+   "sources": [
+    "egger_td",
+    "holztusche",
+    "dds",
+    "becher_span",
+    "egger_epd"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [],
+   "notes": "EGGER Eurodekor; Plattenbereich 8–40 mm. Spanplatte hat keine Faser – Dekor-/Produktionsrichtung entlang der Länge."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "MDF roh",
+   "formats": [
+    [
+     2800,
+     2070
+    ],
+    [
+     4100,
+     2070
+    ],
+    [
+     2440,
+     1220
+    ]
+   ],
+   "thicknesses": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    10,
+    12,
+    16,
+    18,
+    19,
+    22,
+    25,
+    28,
+    30,
+    38,
+    40
+   ],
+   "format_thicknesses": {
+    "2440x1220": [
+     3
+    ]
+   },
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "kronospan_mdf",
+    "whg_mdf",
+    "keppler_mdf",
+    "wickert_mdf",
+    "osterwald_mdf"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [],
+   "notes": "Rohdichte je nach Typ ca. 700–800 kg/m³ – nicht belegt, daher leer."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "HDF",
+   "formats": [
+    [
+     2800,
+     2070
+    ],
+    [
+     2440,
+     1220
+    ]
+   ],
+   "thicknesses": [
+    2.5,
+    3
+   ],
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "holzland_hdf",
+    "hansa_hdf",
+    "ip_hdf"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [
+    2.5
+   ],
+   "notes": "3 mm in beiden Formaten belegt; 2,5 mm in der Recherche nicht als Standard bestätigt."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "Multiplex Birke BB/BB",
+   "formats": [
+    [
+     2500,
+     1250
+    ],
+    [
+     3000,
+     1500
+    ],
+    [
+     2500,
+     1500
+    ],
+    [
+     5500,
+     1250
+    ]
+   ],
+   "thicknesses": [
+    4,
+    6.5,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    40
+   ],
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "holzland_mpx",
+    "express_mpx",
+    "keppler_mpx",
+    "wertheimer_mpx",
+    "gj_mpx"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [
+    40
+   ],
+   "notes": "4 mm nur als BB/CP belegt; 5500 x 1250 geschäftet; 1500 x 1500 NICHT bestätigt (nicht enthalten). Faser Deckfurnier entlang der Länge (längsfurniert)."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "Siebdruckplatte Birke",
+   "formats": [
+    [
+     2500,
+     1250
+    ],
+    [
+     3000,
+     1500
+    ]
+   ],
+   "thicknesses": [
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30
+   ],
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "hkd_sieb",
+    "hz_sieb",
+    "rombs_sieb"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [
+    27
+   ],
+   "notes": "9–30 mm belegt (holzkaufendirekt); 27 mm als Einzelstufe nicht gesehen."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "OSB/3",
+   "formats": [
+    [
+     2500,
+     1250
+    ],
+    [
+     2500,
+     675
+    ],
+    [
+     2500,
+     625
+    ],
+    [
+     2800,
+     1250
+    ],
+    [
+     3000,
+     1250
+    ]
+   ],
+   "thicknesses": [
+    9,
+    12,
+    15,
+    18,
+    22,
+    25,
+    30
+   ],
+   "format_thicknesses": {
+    "2500x675": [
+     12,
+     15,
+     18,
+     22,
+     25,
+     30
+    ],
+    "2500x625": [
+     15
+    ],
+    "2800x1250": [
+     15
+    ],
+    "3000x1250": [
+     15
+    ]
+   },
+   "grain": "X",
+   "density": 600,
+   "sources": [
+    "bedarf_osb",
+    "raab_osb",
+    "hornbach_osb",
+    "deg_osb",
+    "osb_misc"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [],
+   "notes": "2500 x 675 / 2500 x 625 = Verlegeplatten mit Nut und Feder (Nutzmaß kleiner). Dichte 600–680 kg/m³. Hauptachse der Deckspäne entlang der Länge."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "Tischlerplatte (Stab/Stäbchen)",
+   "formats": [
+    [
+     5200,
+     2070
+    ],
+    [
+     2800,
+     2070
+    ],
+    [
+     5100,
+     1830
+    ],
+    [
+     2500,
+     1830
+    ]
+   ],
+   "thicknesses": [
+    13,
+    16,
+    19,
+    22,
+    25,
+    28,
+    38,
+    40
+   ],
+   "format_thicknesses": {
+    "5100x1830": [
+     16,
+     19,
+     22,
+     25
+    ],
+    "2500x1830": [
+     16,
+     19,
+     22,
+     25
+    ]
+   },
+   "grain": "X",
+   "density": 450,
+   "sources": [
+    "roeren_tp"
+   ],
+   "unverified_formats": [
+    [
+     5100,
+     1830
+    ],
+    [
+     2500,
+     1830
+    ]
+   ],
+   "unverified_thicknesses": [],
+   "notes": "5200 x 2070 / 2800 x 2070 mit Stärkentabelle belegt (Holz Roeren); 5100 x 1830 und 2500 x 1830 sind ältere Formate, in der Recherche nicht bestätigt."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "Massivholzplatte / Leimholz (durchg. Lamelle)",
+   "formats": [
+    [
+     3000,
+     1220
+    ],
+    [
+     5000,
+     1220
+    ],
+    [
+     4000,
+     1220
+    ]
+   ],
+   "thicknesses": [
+    18,
+    20,
+    26,
+    27,
+    40,
+    42
+   ],
+   "format_thicknesses": {
+    "5000x1220": [
+     18,
+     27,
+     42
+    ],
+    "3000x1220": [
+     18,
+     20,
+     26,
+     40
+    ]
+   },
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "mhp_6883",
+    "mhp_6962",
+    "wiegand_lh",
+    "theile_lh"
+   ],
+   "unverified_formats": [
+    [
+     4000,
+     1220
+    ]
+   ],
+   "unverified_thicknesses": [],
+   "notes": "Dichte holzartabhängig (Fichte ~450, Eiche ~700 kg/m³) – bitte Holzart selbst ergänzen."
+  },
+  {
+   "group": "Holzwerkstoff",
+   "material": "HPL-Kompaktplatte",
+   "formats": [
+    [
+     2800,
+     1300
+    ],
+    [
+     4100,
+     1300
+    ],
+    [
+     3050,
+     1300
+    ]
+   ],
+   "thicknesses": [
+    4,
+    6,
+    8,
+    10,
+    12,
+    13,
+    15,
+    20
+   ],
+   "format_thicknesses": {
+    "3050x1300": [
+     6,
+     8,
+     10
+    ]
+   },
+   "grain": "X",
+   "density": null,
+   "sources": [
+    "fundermax",
+    "roggemann_hpl",
+    "kronoplan"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [],
+   "notes": "Fundermax 2–20 mm (2800 x 1300); keine Faser – Richtung frei wählbar. Dichte ≥1350 kg/m³ nicht belegt."
+  },
+  {
+   "group": "Blech",
+   "material": "Stahlblech (DC01 kalt / S235 warm)",
+   "formats": [
+    [
+     2000,
+     1000
+    ],
+    [
+     2500,
+     1250
+    ],
+    [
+     3000,
+     1500
+    ],
+    [
+     4000,
+     2000
+    ]
+   ],
+   "thicknesses": [
+    0.75,
+    0.88,
+    1,
+    1.25,
+    1.5,
+    2,
+    2.5,
+    3,
+    4,
+    5,
+    6,
+    8,
+    10
+   ],
+   "grain": "X",
+   "density": 7850,
+   "sources": [
+    "elbemetall",
+    "stoll",
+    "wiki_blech",
+    "vbe_dc01",
+    "kicherer_st",
+    "kloeckner"
+   ],
+   "unverified_formats": [],
+   "unverified_thicknesses": [
+    5,
+    6,
+    8,
+    10
+   ],
+   "notes": "DC01 0,75–3,00 mm in 2000x1000/2500x1250/3000x1500 belegt, teils 4000x2000; ≥5 mm (warmgewalzt) nicht einzeln geprüft. Feinblech < 3 mm, Grobblech ≥ 3 mm. Dichte = physikalischer Richtwert. Faser = Walzrichtung entlang der Länge."
+  },
+  {
+   "group": "Blech",
+   "material": "Edelstahlblech (1.4301)",
+   "formats": [
+    [
+     2000,
+     1000
+    ],
+    [
+     2500,
+     1250
+    ],
+    [
+     3000,
+     1500
+    ],
+    [
+     4000,
+     2000
+    ]
+   ],
+   "thicknesses": [
+    0.5,
+    0.8,
+    1,
+    1.25,
+    1.5,
+    2,
+    2.5,
+    3,
+    4,
+    5,
+    6,
+    8,
+    10
+   ],
+   "grain": "X",
+   "density": 7900,
+   "sources": [
+    "elbemetall",
+    "kerschgens",
+    "riba"
+   ],
+   "unverified_formats": [
+    [
+     4000,
+     2000
+    ]
+   ],
+   "unverified_thicknesses": [
+    1.25
+   ],
+   "notes": "Bereich 0,5–10 mm in 2000x1000/2500x1250/3000x1500 belegt (Einzelstufen je Oberfläche verschieden); 4000x2000 für Edelstahl nicht bestätigt. Dichte = physikalischer Richtwert."
+  },
+  {
+   "group": "Blech",
+   "material": "Aluminiumblech (AlMg3 / EN AW-5754)",
+   "formats": [
+    [
+     2000,
+     1000
+    ],
+    [
+     2500,
+     1250
+    ],
+    [
+     3000,
+     1500
+    ],
+    [
+     4000,
+     2000
+    ]
+   ],
+   "thicknesses": [
+    0.5,
+    0.8,
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    4,
+    5,
+    6,
+    8,
+    10
+   ],
+   "grain": "X",
+   "density": 2700,
+   "sources": [
+    "elbemetall",
+    "guenzler_al",
+    "kicherer_al",
+    "heitzmann_al"
+   ],
+   "unverified_formats": [
+    [
+     2500,
+     1250
+    ],
+    [
+     4000,
+     2000
+    ]
+   ],
+   "unverified_thicknesses": [],
+   "notes": "0,5–10 mm in 2000x1000 und 3000x1500 belegt; 2500x1250 nur für 0,8 mm gesehen; 4000x2000 für Alu nicht bestätigt. Dichte = physikalischer Richtwert."
+  }
+ ]
+}

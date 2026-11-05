@@ -1,0 +1,13 @@
+Fremdcode in diesem Ordner
+==========================
+
+clipper.js  – Javascript Clipper 6.4.2 (npm-Paket "clipper-lib" 6.4.2)
+              Original: Angus Johnson, http://www.angusj.com ; JS-Port: Timo (Javascript Clipper)
+              Lizenz: Boost Software License 1.0 (siehe LICENSE_clipper_BSL-1.0.txt,
+              Lizenzhinweis auch im Kopf von clipper.js)
+              Verwendet für: Polygon-Offset (Teileabstand), Vereinigung/Differenz, Minkowski-Summen (NFP)
+
+Alle übrigen Dateien (nest_engine.js, app.js, index.html, style.css) sind eigener Code
+(MIT, siehe LICENSE_ContourNest.txt). Es wurde KEIN Code aus SVGnest oder Deepnest übernommen;
+der Ansatz (NFP + genetischer Algorithmus, Bewertung „Breite×2 + Höhe“) ist an SVGnest (MIT)
+angelehnt.

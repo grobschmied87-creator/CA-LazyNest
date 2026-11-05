@@ -1,0 +1,19 @@
+/* CA Tools (ca_core) 1.0.0 – gemeinsame Infobox (beide Add-Ins identisch). Farben über die Theme-Variablen der
+   Palette (--panel, --fg, --mute, --line, --acc, --ok, --warn, --mag) mit Rückfallwerten. */
+.ca-modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-start; justify-content: center;
+  padding: 24px 10px; z-index: 50; overflow: auto; }
+.ca-modal[hidden] { display: none !important; }
+.ca-dlg { background: var(--panel, #fff); color: var(--fg, #222); border-radius: 8px; border: 1px solid var(--line, #ccc);
+  padding: 12px 14px; width: min(440px, 100%); position: relative; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+.ca-close { position: absolute; right: 6px; top: 6px; }
+.ca-logo { display: block; width: min(280px, 80%); margin: 4px auto 6px; }
+.ca-ver { text-align: center; margin-bottom: 4px; }
+.ca-ver b { font-size: 14px; }
+.ca-slogan { font-style: italic; text-align: center; color: var(--mag, #e6007e); margin: 6px 0; }
+.ca-addr { text-align: center; margin: 6px 0 8px; line-height: 1.45; }
+.ca-lic { border-top: 1px solid var(--line, #ccc); border-bottom: 1px solid var(--line, #ccc); padding: 6px 0; margin: 6px 0; }
+.ca-lic textarea, .ca-dlg textarea { width: 100%; box-sizing: border-box; font-family: Consolas, monospace; font-size: 11px; margin-top: 4px; }
+.ca-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+.ca-mute { color: var(--mute, #6b6b6b); }
+.ca-ok { color: var(--ok, #17702a); font-weight: 600; }
+.ca-warn { color: var(--warn, #b00000); font-weight: 600; }

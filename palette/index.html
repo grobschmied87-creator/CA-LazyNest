@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CA LazyNest</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../ca_core/web/ca_core.css">
+</head>
+<body class="light">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-sel" viewBox="0 0 16 16"><rect x="1.5" y="2" width="3" height="3" rx=".6"/><rect x="1.5" y="6.5" width="3" height="3" rx=".6"/><rect x="1.5" y="11" width="3" height="3" rx=".6"/><path d="M6.5 3.5h8M6.5 8h8M6.5 12.5h6"/></symbol>
+      <symbol id="i-plate" viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M3 6.5q2.5-1 5 0t5 0M3 9.5q2.5-1 5 0t5 0"/></symbol>
+      <symbol id="i-nest" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><path d="M4 4h4v3H4zM9.5 4H12v6H9.5zM4 9l3.5 0 0 3H4z"/></symbol>
+      <symbol id="i-view" viewBox="0 0 16 16"><path d="M1 8s2.6-4.5 7-4.5S15 8 15 8s-2.6 4.5-7 4.5S1 8 1 8z"/><circle cx="8" cy="8" r="2.2"/></symbol>
+      <symbol id="i-res" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><path d="M4.5 8.2l2.4 2.4 4.6-5"/></symbol>
+      <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4.5M8 4.6v.4"/></symbol>
+    </defs>
+  </svg>
+
+  <header id="hdr">
+    <img id="logo" src="img/logo_light.svg" alt="CA LazyNest">
+    <div id="appname"><b>CA LazyNest</b> <span id="ver" class="muted">v2.0.10</span></div>
+    <button id="btnInfo" class="icon" title="Info, Lizenz, Diagnose"><svg><use href="#i-info"/></svg></button>
+  </header>
+
+  <nav id="tabs" role="tablist">
+    <button data-tab="Vorschau" class="tab"><svg><use href="#i-view"/></svg><span>Vorschau</span></button>
+    <button data-tab="Nesting" class="tab"><svg><use href="#i-nest"/></svg><span>Nesting</span></button>
+    <button data-tab="Ergebnis" class="tab"><svg><use href="#i-res"/></svg><span>Ergebnis</span></button>
+  </nav>
+  <div id="statusbar"><div id="status" data-i18n="waiting">Warte auf Daten aus Fusion …</div><div id="progress"><div id="bar"></div></div></div>
+  <div id="notice" hidden></div>
+
+  <main id="content">
+    <!-- ================================================================ Nesting -->
+    <section class="pane" data-pane="Nesting">
+      <fieldset>
+        <legend data-i18n="label.distances">Abstände &amp; Drehung</legend>
+        <div class="row2"><label>Drehschritt freie Teile
+            <select id="qR">
+              <option value="90">90°</option><option value="45">45°</option><option value="30">30°</option>
+              <option value="15">15°</option><option value="10">10°</option><option value="5">5°</option>
+              <option value="0">keine Drehung</option>
+            </select></label><span></span></div>
+        <label>Ausnutzung ↔ kleine Teile mittig <span id="qVv"></span>
+          <input id="qV" type="range" min="0" max="100" step="1"></label>
+        <div class="row2"><label>Mindestfläche Vakuum cm² <input id="sVacA" type="number" min="0" step="10"></label>
+          <label>Dicken-Toleranz mm <input id="sTol" type="number" min="0" step="0.1"></label></div>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="label.quality">Qualität (Rechenaufwand)</legend>
+        <div class="seg3" id="qPreset"><button data-q="fast">Schnell</button><button data-q="normal">Normal</button><button data-q="best" data-i18n="label.thorough">Gründlich</button></div>
+        <div class="row3"><label>Rechenzeit s <input id="sTime" type="number" min="5" max="3600" step="5"></label>
+          <label>Generationen <input id="sGens" type="number" min="1" max="1000" step="1"></label>
+          <label>Population <input id="sPop" type="number" min="2" max="100" step="1"></label></div>
+      </fieldset>
+      <fieldset>
+        <legend>Teile</legend>
+        <label class="check" title="Körper in der Wurzel oder in Mehrkörper-Komponenten werden per „Komponente aus Körper“ in eine eigene Komponente verschoben (ändert die Konstruktion!)"><input id="sConv" type="checkbox"> Körper ohne eigene Komponente umwandeln</label>
+      </fieldset>
+      <button id="btnRecalc" class="primary wide" title="Mit diesen Werten neu berechnen (fixierte Teile bleiben)">▶ Neu berechnen</button>
+    </section>
+
+    <!-- ================================================================ Vorschau (2.0.1: zweispaltig) -->
+    <section class="pane" data-pane="Vorschau">
+      <div class="split">
+        <aside id="side">
+          <button id="sideToggle" class="sidetoggle" title="Linke Spalte ein-/ausklappen">☰ Auswahl &amp; Platte</button>
+          <div id="sideBody">
+          <details id="boxSel" class="box" open>
+            <summary><svg class="ic"><use href="#i-sel"/></svg> Auswahl <span id="selCount" class="muted"></span></summary>
+      <div class="toolbar">
+              <button id="btnPick" class="primary" title="Schlanken Fusion-Auswahlbefehl starten; OK kehrt hierher zurück" data-i18n="label.pick_parts">＋ Teile wählen</button>
+              <button id="btnClear" title="Auswahlliste leeren">Liste leeren</button>
+              <button id="btnDeleteNest" class="danger" title="Aktuelles Nesting vollständig löschen: Rohteile mit Teilen, LazyNest-Kopien, verknüpfte CAM-Setups (inkl. LazySetup), Projektdaten – Original-Teile bleiben. Fusion fragt vorher nach." data-i18n="label.clear_nest">🗑 Nesting löschen</button>
+              <button id="btnRefreshCopies" hidden title="Baugruppen-Kopien aus der Quelle neu lesen – Lagen in den Rohteilen bleiben">⟳ Kopien aktualisieren</button>
+            </div>
+            <label class="check" title="Aus gewählten Baugruppen werden alle Teile (auch aus verknüpften Komponenten) rekursiv gesammelt und als Körper-Kopien in lokale Komponenten (LazyNest Kopien) übernommen"><input id="chkAsm" type="checkbox"> Baugruppenmodus (mit Unterbaugruppen, als Kopien)</label>
+            <div id="linkHint" class="hint warnbox" hidden></div>
+            <div id="selEmpty" class="muted empty">Noch keine Teile gewählt. „Teile wählen“ öffnet die Auswahl in Fusion (Körper oder Komponenten).</div>
+            <table id="selTable" class="grid">
+              <thead><tr><th class="c-en" title="Aktiv">✓</th><th>Teil</th><th class="c-g">Faser</th><th class="c-q">Stück</th><th class="c-x"></th></tr></thead>
+              <tbody id="selBody"></tbody>
+            </table>
+            <div id="selSum" class="muted"></div>
+          </details>
+          <details id="boxPlate" class="box">
+            <summary><svg class="ic"><use href="#i-plate"/></svg> Platte <span id="plateSum" class="muted"></span></summary>
+      <fieldset>
+              <legend>Rohteil (Standardformat)</legend>
+              <div id="qStock">
+                <label>Material (Bibliothek) <select id="qMat"></select></label>
+                <div class="row2"><label>Format <select id="qFmt"></select></label>
+                  <label>Dicke <select id="qThk"></select></label></div>
+                <button id="qStockSave" title="Aktuelle Werte als eigene Vorlage in user_stock.json speichern">Als Vorlage speichern</button>
+              </div>
+              <div class="row2"><label>Länge (X) mm <input id="qL" type="number" min="1" step="1"></label>
+                <label>Breite (Y) mm <input id="qB" type="number" min="1" step="1"></label></div>
+              <div class="row2"><label>Dicke mm <input id="qT" type="number" min="0.1" step="0.1"></label>
+                <label>Material <input id="qMatTxt" type="text" placeholder="ohne"></label></div>
+              <label>Faserrichtung <select id="qG"><option value="X">X (entlang Länge)</option><option value="Y">Y (entlang Breite)</option></select></label>
+              <div class="row2"><label>Max. Anzahl Rohteile <input id="sMax" type="number" min="1" max="99" step="1"></label>
+                <label title="Abstand der Rohteile nebeneinander in der Konstruktion">Abstand Rohteile mm <input id="sGap" type="number" min="0" step="10"></label></div>
+              <div id="qInfo" class="muted"></div>
+            </fieldset>
+            <fieldset id="sheetPanel">
+              <legend>Rohteile / Abschnitte <button id="shAdd" class="small" title="Neues Rohteil mit eigenem Maß (Abschnitt/Reststück) anlegen">＋ Abschnitt</button></legend>
+              <div id="sheetNone" class="muted">Rohteil-Liste, längs/quer, Abschnitte und Nullpunkt je Rohteil stehen nach dem ersten Nesten zur Verfügung.</div>
+              <div id="sheetList" title="Reihenfolge = Füllreihenfolge für „Neu berechnen“"></div>
+              <div id="shEdit" hidden>
+                <div id="shTitle" class="muted"></div>
+                <div class="row"><button id="shOrient" title="Rohteil um 90° drehen (Länge/Breite tauschen) – alle Teile drehen mit, Nullpunkt bleibt an derselben Tischecke">⟲ längs ↔ quer</button>
+                  <button id="shRenest" title="Nur dieses Rohteil neu anordnen (fixierte Teile bleiben)">▶ Neu nesten</button></div>
+                <div class="row"><span>Nullpunkt</span><select id="shZero" title="Auch per Klick auf eine Ecke/Mitte in der Vorschau"></select></div>
+                <div class="row"><span>Art</span><select id="shKind"><option value="standard">Standardformat</option><option value="abschnitt">Abschnitt (eigenes Maß)</option></select></div>
+                <div id="shAb" hidden>
+                  <div class="row2"><label>Länge mm <input id="shL" type="number" min="1" step="1"></label>
+                    <label>Breite mm <input id="shB" type="number" min="1" step="1"></label></div>
+                  <div class="row2"><label>Faser <select id="shG"><option value="X">X (entlang Länge)</option><option value="Y">Y (entlang Breite)</option></select></label>
+                    <label>Randbesäumung mm <input id="shF" type="number" min="0" step="0.5"></label></div>
+                  <div class="row2"><label>Dicke mm <input id="shT" type="number" min="0.1" step="0.1"></label>
+                    <label>Material <input id="shM" type="text" placeholder="wie Standard"></label></div>
+                  <button id="shApply" class="wide">Abschnitt übernehmen</button>
+                </div>
+                <div class="row"><span>Füllreihenfolge</span><button id="shUp" title="Früher füllen">▲</button><button id="shDown" title="Später füllen">▼</button>
+                  <button id="shDel" class="danger" hidden title="Leeres Rohteil entfernen">✖ Entfernen</button></div>
+              </div>
+            </fieldset>
+              </details>
+          <fieldset class="box">
+            <legend>Abstände</legend>
+            <div class="row2"><label>Randbesäumung mm <input id="qF" type="number" min="0" step="0.5"></label>
+              <label>Teileabstand mm <input id="qS" type="number" min="0" step="0.5" title="z. B. Fräserdurchmesser"></label></div>
+            <div id="liveHint" class="muted small">Änderungen gelten sofort für Ziehen/Abstands-Prüfung; neu angeordnet wird erst mit „Neu nesten“.</div>
+          </fieldset>
+          <button id="btnNest" class="primary wide big" title="Auswahl + Platten-/Abstands-Werte übernehmen und neu nesten">▶ Neu nesten</button>
+          </div>
+        </aside>
+        <div id="mainCol">
+      <div class="toolbar">
+            <button id="btnStart" title="Mit den Werten aus Platte/Nesting neu berechnen (fixierte Teile bleiben)">▶ Neu berechnen</button>
+            <button id="btnStop" title="Berechnung anhalten (bestes Ergebnis bleibt)">■ Stopp</button>
+            <button id="btnFit" title="Alle Rohteile zeigen (oder Doppelklick auf leere Fläche)">⤢ Alles</button>
+            <button id="btnFix" disabled title="Rot markierte Teile (Abstand/Rand verletzt) minimal auseinanderschieben – Drehung bleibt, fixierte Teile zuletzt">⇔ Abstände korrigieren</button>
+            <span class="seg" title="Innenkonturen: Durchbrüche immer weiß; Bearbeitungen nur von oben oder alle (beide Seiten gestrichelt)"><button id="fvTop" data-fv="top">Nur oben</button><button id="fvAll" data-fv="all">Alle</button></span>
+          </div>
+          <div id="summary"></div>
+<div id="view"></div>
+      <div id="legend" class="legendstrip" title="Legende">
+        <span><i class="sw part"></i> Teil</span>
+        <span><i class="sw sel"></i> gewählt</span>
+        <span><i class="sw conf"></i> Kollision / Abstand</span>
+        <span><i class="sw rim"></i> Rand (Besäumung)</span>
+        <span><i class="sw zeroi">⊕</i> Nullpunkt (Klick auf ○)</span>
+        <span><i class="sw free"></i> freie Fläche</span>
+        <span><i class="sw rest"></i> Reststück / Abschnitt</span>
+        <span><i class="sw small"></i> Kleinteil</span>
+        <span><i class="sw crit"></i> &lt; Vakuum-Fläche</span>
+        <span><i class="sw thru"></i> Durchbruch</span>
+        <span id="legTop"><i class="sw ftop"></i> Bearb. oben</span>
+        <span id="legBot"><i class="sw fbot"></i> Bearb. unten</span>
+        <span>📌 fixiert · ⇅ gewendet · ∠ Drehung fest</span>
+      </div>
+      <p class="hint small">Mausrad: Zoom · Ziehen leer: Verschieben · Klick: Teil wählen · Ziehen: Teil bewegen (hält Teileabstand/Rand; Strg = frei) · Doppelklick: Zoom · R/⇧R drehen, F wenden, P fixieren, Entf ausschließen</p>
+      <details id="partBox" open>
+        <summary>Gewähltes Teil / Ausgeschlossen</summary>
+        <section id="partPanel" hidden>
+          <h3 id="ppTitle">Teil</h3>
+          <div id="ppInfo" class="muted"></div>
+          <div id="ppFeat" class="feat"></div>
+          <div class="row"><span>Drehen</span>
+            <button id="ppRotM" title="Drehen − (⇧R)">⟲ −</button>
+            <button id="ppRotP" title="Drehen + (R)">⟳ +</button>
+            <span id="ppStep" class="muted"></span></div>
+          <div class="row"><span>Winkel</span><input id="ppAngle" type="number" step="1" style="width:70px"> °
+            <button id="ppAngleSet">Setzen</button></div>
+          <label class="row"><input id="ppIgnore" type="checkbox"> Faser ignorieren</label>
+          <div class="row"><span>Faser</span>
+            <select id="ppGrain"><option value="laengs">längs</option><option value="quer">quer</option><option value="frei">frei</option></select></div>
+          <div class="row"><button id="ppFlip" title="Wenden (F): andere Fläche nach oben">⇅ Wenden</button>
+            <span id="ppFlipInfo" class="muted"></span></div>
+          <div class="row" id="ppFixRow" hidden><span id="ppFixRot" class="badge"></span>
+            <button id="ppFixRel" title="Gesetzte Drehung wieder der Berechnung überlassen">Drehung freigeben</button></div>
+          <div class="row"><button id="ppPin" title="Fixieren (P)">📌 Fixieren</button>
+            <span>Rohteil</span><select id="ppSheet"></select></div>
+          <div class="row"><button id="ppExclude" class="danger" title="Ausschließen (Entf)">✖ Ausschließen</button></div>
+          <div id="ppWarn" class="warn"></div>
+        </section>
+        <div id="ppNone" class="muted">Klick auf ein Teil in der Vorschau wählt es aus.</div>
+        <section id="exclPanel" hidden>
+          <h3>Ausgeschlossen</h3>
+          <div id="exclList"></div>
+        </section>
+      </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ Ergebnis -->
+    <section class="pane" data-pane="Ergebnis">
+      <div id="resEmpty" class="muted empty">Noch kein Ergebnis – zuerst „Neu nesten“ (Register Vorschau).</div>
+      <div id="resCards" class="cards" hidden>
+        <div class="card"><div class="k">Ausnutzung</div><div class="v" id="rUtil">–</div></div>
+        <div class="card"><div class="k">Verschnitt</div><div class="v" id="rWaste">–</div></div>
+        <div class="card"><div class="k">Rohteile</div><div class="v" id="rSheets">–</div></div>
+        <div class="card"><div class="k">Teile platziert</div><div class="v" id="rParts">–</div></div>
+      </div>
+      <div id="resSheets"></div>
+      <fieldset id="resSkipBox" hidden>
+        <legend>Übersprungene / nicht platzierte Teile</legend>
+        <ul id="resSkip"></ul>
+      </fieldset>
+      <div id="resApplied" class="okbox" hidden></div>
+      <fieldset>
+        <legend>Übernehmen in Fusion</legend>
+        <label class="check"><input id="sBody" type="checkbox"> Rohteil als Körper (halbtransparent)</label>
+        <label class="check"><input id="sReplace" type="checkbox"> Vorhandenes Nesting ersetzen</label>
+        <label>Teile fixieren <select id="sFix"></select></label>
+        <label class="check" title="Je Rohteil ein Fräs-Setup in FERTIGUNG"><input id="sCam" type="checkbox"> CAM-Setup erstellen</label>
+        <div class="row2"><label>Nullpunkt (WCS) <select id="sCamOrigin"></select></label>
+          <label>Rohteil (Stock) <select id="sCamStock"></select></label></div>
+        <label>Programmnummer ab (0 = keine) <input id="sCamProg" type="number" min="0" max="99999" step="1"></label>
+      </fieldset>
+      <div class="row"><button id="btnLog" title="Ordner mit Protokoll und Diagnose-Dateien öffnen">📄 Protokoll öffnen</button><span id="logPath" class="muted path"></span></div>
+    </section>
+  </main>
+
+  <footer id="bottombar">
+    <button id="btnCancel" title="Fenster schließen, nichts übernehmen">Abbrechen</button>
+    <button id="btnApply" class="primary" title="Aktuelles Layout (inkl. manueller Änderungen) in Fusion übernehmen">✔ Übernehmen</button>
+  </footer>
+
+  <script src="../ca_core/web/ca_i18n.js"></script>
+  <script src="../ca_core/web/ca_shell.js"></script>
+  <script src="clipper.js"></script>
+  <script src="nest_engine.js"></script>
+  <script src="app.js"></script>
+  <script src="shell.js"></script>
+</body>
+</html>
