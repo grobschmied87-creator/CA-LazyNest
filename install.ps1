@@ -1,6 +1,6 @@
 # CA LazyNest – Installer (Fusion Add-In)
 # Ziel: %APPDATA%\Autodesk\Autodesk Fusion 360\API\AddIns\LazyNest
-# Behaelt Nutzerdaten, entfernt __pycache__; optional Backup LazyNest_backup_<Datum>
+# Behaelt Nutzerdaten, entfernt __pycache__; Backup nach API\Backups_out_of_AddIns (nicht in AddIns – sonst Autostart-Konflikt)
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Join-Path $env:APPDATA 'Autodesk\Autodesk Fusion 360\API\AddIns'
@@ -22,7 +22,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $src "$name.manifest"))) {
 }
 
 if (Test-Path -LiteralPath $dst) {
-    $bk = Join-Path $root ($name + '_backup_' + $stamp)
+    $bkRoot = Join-Path $env:APPDATA 'Autodesk\Autodesk Fusion 360\API\Backups_out_of_AddIns'
+    New-Item -ItemType Directory -Force $bkRoot | Out-Null
+    $bk = Join-Path $bkRoot ($name + '_backup_' + $stamp)
     if (Test-Path -LiteralPath $bk) { $bk = $bk + '_' + (Get-Date -Format 'HHmmss') }
     Write-Host "Backup: $dst -> $bk"
     Copy-Item -LiteralPath $dst -Destination $bk -Recurse -Force
