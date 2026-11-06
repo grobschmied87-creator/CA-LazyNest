@@ -69,8 +69,8 @@ F.CC = CORE.ca_compute            # 2.0.3: gemeinsamer computeAll-Stand mit Lazy
 DIAG = CORE.ca_diag
 PRODUCT = 'lazynest'
 
-VERSION = '2.0.10'                 # EINZIGE Versionsquelle (Manifest, Tooltips, Palette, Protokoll, Projektdateien)
-BUILD_DATE = '2026-11-05'
+VERSION = '2.0.11'                 # EINZIGE Versionsquelle (Manifest, Tooltips, Palette, Protokoll, Projektdateien)
+BUILD_DATE = '2026-11-06'
 APP_NAME = 'CA LazyNest'
 L.VERSION = VERSION
 P.VERSION = VERSION

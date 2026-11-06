@@ -21,7 +21,7 @@
 
   <header id="hdr">
     <img id="logo" src="img/logo_light.svg" alt="CA LazyNest">
-    <div id="appname"><b>CA LazyNest</b> <span id="ver" class="muted">v2.0.10</span></div>
+    <div id="appname"><b>CA LazyNest</b> <span id="ver" class="muted">v2.0.11</span></div>
     <button id="btnInfo" class="icon" title="Info, Lizenz, Diagnose"><svg><use href="#i-info"/></svg></button>
   </header>
 
@@ -163,7 +163,7 @@
         <span id="legBot"><i class="sw fbot"></i> Bearb. unten</span>
         <span>📌 fixiert · ⇅ gewendet · ∠ Drehung fest</span>
       </div>
-      <p class="hint small">Mausrad: Zoom · Ziehen leer: Verschieben · Klick: Teil wählen · Ziehen: Teil bewegen (hält Teileabstand/Rand; Strg = frei) · Doppelklick: Zoom · R/⇧R drehen, F wenden, P fixieren, Entf ausschließen</p>
+      <p class="hint small">Mausrad: Zoom · Ziehen leer: Verschieben · Klick: Teil wählen · Rechtsklick: Menü · Ziehen: Teil bewegen (auch auf ein anderes Rohteil; hält Teileabstand/Rand; Strg = frei) · Doppelklick: Zoom · R/⇧R drehen, F wenden, P fixieren, Entf ausschließen</p>
       <details id="partBox" open>
         <summary>Gewähltes Teil / Ausgeschlossen</summary>
         <section id="partPanel" hidden>
@@ -188,7 +188,7 @@
           <div class="row"><button id="ppExclude" class="danger" title="Ausschließen (Entf)">✖ Ausschließen</button></div>
           <div id="ppWarn" class="warn"></div>
         </section>
-        <div id="ppNone" class="muted">Klick auf ein Teil in der Vorschau wählt es aus.</div>
+        <div id="ppNone" class="muted">Klick auf ein Teil in der Vorschau wählt es aus. Rechtsklick öffnet ein Menü.</div>
         <section id="exclPanel" hidden>
           <h3>Ausgeschlossen</h3>
           <div id="exclList"></div>
@@ -231,6 +231,8 @@
     <button id="btnCancel" title="Fenster schließen, nichts übernehmen">Abbrechen</button>
     <button id="btnApply" class="primary" title="Aktuelles Layout (inkl. manueller Änderungen) in Fusion übernehmen">✔ Übernehmen</button>
   </footer>
+
+  <div id="partCtx" class="ctxmenu" hidden role="menu"></div>
 
   <script src="../ca_core/web/ca_i18n.js"></script>
   <script src="../ca_core/web/ca_shell.js"></script>

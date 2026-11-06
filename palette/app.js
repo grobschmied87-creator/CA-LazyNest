@@ -11,7 +11,9 @@
    2.0.5: Parkzone – Teile, die nach Drehen/Wenden nicht passen oder neben die Platte gezogen werden, liegen grau
    rechts neben ihrem Rohteil (S.parked, „nicht platziert“) statt abgelehnt zu werden; „Neu nesten“ ordnet sie ein.
    2.0.7: Baugruppenmodus-Sync; 2.0.6: Unplatzierte nach Nesten/Faserwechsel immer parken (sichtbar, drehbar, Neu-Nesten); fixRot nach Faser-Snap;
-   Reset leert die Rohteil-Liste (#sheetList). */
+   Reset leert die Rohteil-Liste (#sheetList).
+   2.0.11: Rechtsklick-Kontextmenü am Teil (Hotkeys und rechtes Panel bleiben); Teile per Ziehen auf ein anderes Rohteil
+   legen (Koordinaten ins Zielblatt, sonst findSpot, sonst parken). */
 (function () {
   'use strict';
   var E = window.ContourNestEngine;
@@ -22,6 +24,7 @@
   var conflicts = {};         // key -> Grund
   var view = null;            // {x,y,w,h} viewBox
   var drag = null;            // laufende Maus-Aktion
+  var ctxEl = null;           // Rechtsklick-Menü (#partCtx)
   var geo = null;             // Zeichengeometrie (Blattversätze)
   var selSheet = 0;           // gewähltes Rohteil (Index in layout.sheets) für die Rohteil-Liste
   var sheetJob = null;        // laufendes „Neu nesten“ eines Blatts
@@ -744,7 +747,7 @@
       if (pin !== false || f.part.parked === false) f.part.pinned = true;
       setOv(f.part, f.sheet.index); afterChange();
     },
-    toSheet: function (target) {         // target: Index 1..n oder 'new'
+    toSheet: function (target, xy) {         // target: Index 1..n oder 'new'; xy: optional {x,y,forced,park}
       var f = findPart(selected); if (!f) return;
       manualEdit();
       var p = f.part, ti;
@@ -752,24 +755,49 @@
         layout.sheets.push({ index: layout.sheets.length + 1, utilisation: 0, parts: [], def: newDef() });
         ti = layout.sheets.length - 1;
       } else ti = parseInt(target, 10) - 1;
-      if ((ti === f.si && !f.parked) || !layout.sheets[ti]) return;
+      if (!layout.sheets[ti]) return;
+      if (ti === f.si && !f.parked && !(xy && (xy.forceMove || xy.park))) return;
       var dest = layout.sheets[ti], al = allowed(p, undefined, undefined, undefined, dest);
       var rots = (p.fixRot !== null && p.fixRot !== undefined) ? [p.rot]
         : (al.indexOf(norm(p.rot)) >= 0 ? [p.rot] : []).concat(al.filter(function (r) { return r !== norm(p.rot); }));
-      var spot = nester.findSpot(dest.parts, p.id, rots, p.flip, geomOf(dest));
-      var src = f.sheet;
+      var src = f.sheet, placed = null, parked = false;
       f.list.splice(f.pi, 1);
-      if (spot) {
-        var np = rebuild(p, spot.rot, p.flip, spot.x, spot.y);
-        np.pinned = true; np.parked = false;
-        dest.parts.push(np);
-      } else parkRecords(dest, [p]);          // 2.0.5: kein Platz -> in die Parkzone des Ziels statt Kollision
+      if (xy && xy.park) {
+        parkRecords(dest, [p]);
+        parked = true;
+      } else {
+        if (xy && isFinite(xy.x) && isFinite(xy.y)) {
+          var trial = rebuild(p, p.rot, p.flip, xy.x, xy.y), gmT = geomOf(dest);
+          var inside = trial.cx >= 0 && trial.cx <= gmT.W && trial.cy >= 0 && trial.cy <= gmT.H;
+          if (inside) {
+            dest.parts.push(trial);
+            var cf = {};
+            try { cf = E.layoutConflicts(sheetRecOf(dest), dest.parts); } catch (e0) { cf = {}; }
+            if (!cf[p.key] || xy.forced) {
+              trial.pinned = true; trial.parked = false; trial.forced = !!(xy.forced && cf[p.key]);
+              placed = trial;
+            } else dest.parts.pop();
+          }
+        }
+        if (!placed) {
+          var spot = nester.findSpot(dest.parts, p.id, rots, p.flip, geomOf(dest));
+          if (spot) {
+            var np = rebuild(p, spot.rot, p.flip, spot.x, spot.y);
+            np.pinned = true; np.parked = false;
+            dest.parts.push(np);
+            placed = np;
+          } else { parkRecords(dest, [p]); parked = true; }
+        }
+      }
       relayoutParking(src);
       dropEmptySheets();
       var nf = findPart(p.key);
-      setOv(nf.part, nf.sheet.index);
-      setStatus(spot ? 'Teil auf ' + sheetName(nf.sheet) + ' verschoben und fixiert.' :
-        'Kein freier Platz auf ' + sheetName(nf.sheet) + ' – Teil ' + PARK_TXT + '.', !spot);
+      if (nf) {
+        setOv(nf.part, nf.sheet.index);
+        selSheet = nf.si;
+        setStatus(placed ? 'Teil auf ' + sheetName(nf.sheet) + ' verschoben und fixiert.' :
+          'Kein freier Platz auf ' + sheetName(nf.sheet) + ' – Teil ' + PARK_TXT + '.', !placed);
+      }
       afterChange();
     },
     exclude: function () {
@@ -1187,6 +1215,22 @@
     var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   }
+  // welches Rohteil liegt unter dem Zeiger? (SVG-Wurzelkoordinaten, Platte + Parkzone rechts)
+  function sheetHitFromEvent(ev) {
+    if (!ev || !geo || !layout) return null;
+    var svg = $('view') && $('view').querySelector('svg');
+    if (!svg || !svg.createSVGPoint) return null;
+    var r;
+    try { r = rootPoint(svg, ev); } catch (e) { return null; }
+    var found = null;
+    for (var i = 0; i < layout.sheets.length; i++) {
+      var oy = geo.offs[i], gm = geo.gms[i], W = gm.W, H = gm.H, S = layout.sheets[i];
+      var extra = Math.max(S.parkW || 0, parkGap(gm));
+      if (r.y >= oy && r.y <= oy + H && r.x >= 0 && r.x <= W + extra)
+        found = { si: i, parked: r.x > W, localX: r.x, localY: (oy + H) - r.y };
+    }
+    return found;
+  }
   function bindSvg(svg) {
     svg.addEventListener('pointerdown', function (ev) {
       var tgt = ev.target, key = tgt.getAttribute && tgt.getAttribute('data-key');
@@ -1199,6 +1243,12 @@
       if (tgt.getAttribute && tgt.getAttribute('data-act') === 'orient') {
         actions.orient(parseInt(tgt.getAttribute('data-sheet'), 10)); ev.preventDefault(); return;
       }
+      if (ev.button === 2) {                 // Rechtsklick: Teil wählen, kein Ziehen (Menü kommt über contextmenu)
+        if (key) { selected = key; updatePanel(); highlight(tgt.classList && tgt.classList.contains('part') ? tgt : (tgt.parentNode && tgt.parentNode.querySelector && tgt.parentNode.querySelector('path.part[data-key="' + key + '"]')) || tgt); }
+        return;
+      }
+      if (ev.button !== 0) return;
+      hideCtx();
       try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* synthetische Events */ }
       if (key) {
         if (selected !== key) { selected = key; updatePanel(); }
@@ -1221,8 +1271,8 @@
       if (drag.mode === 'part') {
         var p = sheetPoint(drag.g, ev), dx = p.x - drag.start.x, dy = p.y - drag.start.y;
         if (!drag.moved && Math.hypot(dx, dy) < geo.L / 400) return;
-        if (!drag.moved) { manualEdit(); startZones(drag); }
-        drag.moved = true;
+        if (!drag.moved) { hideCtx(); manualEdit(); startZones(drag); }
+        drag.moved = true; drag.lastEv = ev;
         drag.want = drag.lastWant = { x: drag.x0 + dx, y: drag.y0 + dy, ctrl: !!(ev.ctrlKey || ev.metaKey) };
         scheduleMove();
       } else {
@@ -1232,12 +1282,25 @@
         drag.moved = true; applyView();
       }
     });
-    function end() {
+    function end(ev) {
       if (!drag) return;
       if (drag.mode === 'part' && drag.want) processMove();       // letzte Bewegung nicht verlieren
       var d = drag; drag = null;
       if (d.mode === 'part') {
         var f = findPart(d.key);
+        var evHit = ev || d.lastEv;
+        var hit = (d.moved && evHit) ? sheetHitFromEvent(evHit) : null;
+        if (d.moved && f && hit && hit.si !== f.si) {
+          selected = d.key;
+          var svg0 = $('view').querySelector('svg');
+          var tgtG = svg0 && svg0.querySelector('g[data-sheet="' + hit.si + '"]');
+          var pt = (tgtG && evHit) ? sheetPoint(tgtG, evHit) : { x: hit.localX, y: hit.localY };
+          actions.toSheet(layout.sheets[hit.si].index, {
+            x: pt.x - (d.start.x - d.x0), y: pt.y - (d.start.y - d.y0),
+            forced: !!d.forcedNow, park: !!hit.parked
+          });
+          return;
+        }
         var gmE = d.moved ? geomOf(f.sheet) : null, fp = f.part;
         if (d.moved && !(fp.cx >= 0 && fp.cx <= gmE.W && fp.cy >= 0 && fp.cy <= gmE.H)) {
           // 2.0.5: neben die Platte gezogen (oder geparktes Teil ohne Platz) -> parken
@@ -1276,6 +1339,14 @@
       var key = ev.target.getAttribute && ev.target.getAttribute('data-key');
       if (key) zoomTo(key); else fitView();
     });
+    svg.addEventListener('contextmenu', function (ev) {
+      var key = ev.target.getAttribute && ev.target.getAttribute('data-key');
+      if (!key) return;                       // leere Fläche: kein Menü (Browser-Menü bleibt)
+      ev.preventDefault(); ev.stopPropagation();
+      if (drag && drag.mode === 'part' && drag.moved) return;
+      if (selected !== key) { selected = key; updatePanel(); }
+      showCtxMenu(ev);
+    });
   }
   // ---------------------------------------------------------------- Ziehen mit Sperrzonen
   var rafId = null;
@@ -1311,6 +1382,23 @@
     // 2.0.5: Schwerpunkt außerhalb der Platte -> frei ziehen, Loslassen parkt das Teil (nicht platziert)
     var gmo = geomOf(f.sheet), w0 = rebuild(q, q.rot, q.flip, x, y);
     d.outside = !(w0.cx >= 0 && w0.cx <= gmo.W && w0.cy >= 0 && w0.cy <= gmo.H);
+    var hover = d.lastEv ? sheetHitFromEvent(d.lastEv) : null;
+    if (hover && hover.si !== f.si) {
+      d.outside = false; d.forcedNow = false; d.slid = false;
+      replacePart(f, w0);
+      d.path.setAttribute('d', partD(w0));
+      if (d.extras) drawExtras(w0, d.extras);
+      if (hover.parked) {
+        d.path.setAttribute('fill', '#b9b9b9');
+        if (d.path.getAttribute('class') !== 'part parked') d.path.setAttribute('class', 'part parked');
+        setStatus('Loslassen = auf ' + sheetName(layout.sheets[hover.si]) + ' parken (nicht platziert).', true);
+      } else {
+        d.path.setAttribute('fill', d.color);
+        if (d.path.getAttribute('class') !== 'part') d.path.setAttribute('class', 'part');
+        setStatus('Loslassen = auf ' + sheetName(layout.sheets[hover.si]) + ' verschieben.');
+      }
+      return;
+    }
     if (d.outside) {
       d.forcedNow = false; d.slid = false;
       replacePart(f, w0);
@@ -1356,6 +1444,86 @@
     drag.want = drag.lastWant || { x: f.part.x, y: f.part.y };
     drag.want.ctrl = ev.type === 'keydown';
     scheduleMove();
+  }
+  function hideCtx() { if (ctxEl) ctxEl.hidden = true; }
+  function ensureCtx() {
+    if (ctxEl) return ctxEl;
+    ctxEl = $('partCtx') || document.createElement('div');
+    if (!ctxEl.id) ctxEl.id = 'partCtx';
+    ctxEl.className = 'ctxmenu';
+    ctxEl.setAttribute('role', 'menu');
+    ctxEl.hidden = true;
+    if (!ctxEl.parentNode) document.body.appendChild(ctxEl);
+    ctxEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    ctxEl.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    ctxEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    document.addEventListener('pointerdown', function (e) {
+      if (ctxEl && !ctxEl.hidden && !ctxEl.contains(e.target)) hideCtx();
+    });
+    return ctxEl;
+  }
+  function ctxItem(label, hk, fn, disabled) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'ctxitem'; b.disabled = !!disabled;
+    var s = document.createElement('span'); s.textContent = label; b.appendChild(s);
+    if (hk) { var h = document.createElement('span'); h.className = 'hk'; h.textContent = hk; b.appendChild(h); }
+    b.onclick = function () { hideCtx(); if (fn) fn(); };
+    return b;
+  }
+  function ctxSep() { var d = document.createElement('div'); d.className = 'ctxsep'; return d; }
+  function showCtxMenu(ev) {
+    var f = selected && findPart(selected); if (!f) return;
+    var el = ensureCtx(), p = f.part;
+    el.innerHTML = '';
+    el.appendChild(ctxItem('Drehen +', 'R', function () { actions.rotate(1); }));
+    el.appendChild(ctxItem('Drehen −', '⇧R', function () { actions.rotate(-1); }));
+    var row = document.createElement('div'); row.className = 'ctxangle';
+    var lab = document.createElement('span'); lab.textContent = 'Winkel'; row.appendChild(lab);
+    var inp = document.createElement('input'); inp.type = 'number'; inp.step = '1'; inp.id = 'ctxAngle';
+    inp.value = Math.round(p.rot * 10) / 10; row.appendChild(inp);
+    var deg = document.createElement('span'); deg.textContent = '°'; row.appendChild(deg);
+    var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = 'OK';
+    function applyAng() { var a = parseFloat(inp.value); hideCtx(); actions.setAngle(a); }
+    ok.onclick = applyAng;
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyAng(); }
+      e.stopPropagation();
+    });
+    row.appendChild(ok); el.appendChild(row);
+    el.appendChild(ctxItem('Wenden', 'F', function () { actions.flip(); }));
+    el.appendChild(ctxItem(p.pinned ? 'Fixierung lösen' : 'Fixieren', 'P', function () { actions.pin(); }, !!f.parked));
+    el.appendChild(ctxSep());
+    var wrap = document.createElement('div'); wrap.className = 'ctxsub';
+    var subBtn = ctxItem('Auf Rohteil', '▸', null, false);
+    subBtn.className = 'ctxitem ctxsubbtn';
+    subBtn.onclick = function (e) { e.preventDefault(); };
+    wrap.appendChild(subBtn);
+    var sub = document.createElement('div'); sub.className = 'ctxsubmenu';
+    layout.sheets.forEach(function (S) {
+      var extra = (S.index === f.sheet.index ? ' (aktuell)' : '') + (S.def.kind === 'abschnitt' ? ' (Abschnitt)' : '') +
+        (S.def.orient === 'quer' ? ' quer' : '');
+      var sb = ctxItem(sheetName(S) + extra, '', function () { actions.toSheet(S.index); }, S.index === f.sheet.index && !f.parked);
+      sub.appendChild(sb);
+    });
+    if (layout.sheets.length < Math.max(job.maxSheets || 1, layout.sheets.length + 1))
+      sub.appendChild(ctxItem('neues Rohteil', '', function () { actions.toSheet('new'); }));
+    wrap.appendChild(sub); el.appendChild(wrap);
+    el.appendChild(ctxSep());
+    el.appendChild(ctxItem((p.grainMode === 'laengs' ? '✓ ' : '') + 'Faser: längs', '', function () { actions.grainMode('laengs'); }));
+    el.appendChild(ctxItem((p.grainMode === 'quer' ? '✓ ' : '') + 'Faser: quer', '', function () { actions.grainMode('quer'); }));
+    el.appendChild(ctxItem((p.grainMode === 'frei' ? '✓ ' : '') + 'Faser: frei', '', function () { actions.grainMode('frei'); }));
+    el.appendChild(ctxItem((p.ignoreGrain ? '✓ ' : '') + 'Faser ignorieren', '', function () { actions.ignoreGrain(!p.ignoreGrain); }));
+    if (p.fixRot !== null && p.fixRot !== undefined)
+      el.appendChild(ctxItem('Drehung freigeben', '', function () { actions.releaseRot(); }));
+    el.appendChild(ctxSep());
+    el.appendChild(ctxItem('Ausschließen', 'Entf', function () { actions.exclude(); }));
+    el.style.left = '0px'; el.style.top = '0px'; el.hidden = false;
+    var w = el.offsetWidth || 220, h = el.offsetHeight || 280;
+    var vx = window.innerWidth || 800, vy = window.innerHeight || 600;
+    var x = ev.clientX, y = ev.clientY;
+    el.style.left = Math.max(4, Math.min(x, vx - w - 4)) + 'px';
+    el.style.top = Math.max(4, Math.min(y, vy - h - 4)) + 'px';
+    if (x + w + 200 > vx) wrap.classList.add('open-left');
   }
   function highlight(path) {
     Array.prototype.forEach.call($('view').querySelectorAll('path.part'), function (p) {
@@ -1589,8 +1757,10 @@
   }
 
   document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && ctxEl && !ctxEl.hidden) { hideCtx(); ev.preventDefault(); return; }
     var tag = (ev.target && ev.target.tagName) || '';
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (ctxEl && !ctxEl.hidden) hideCtx();
     if (ev.key === 'Escape') { actions.deselect(); return; }
     if (!selected) return;
     if (ev.key === 'r' || ev.key === 'R') actions.rotate(ev.shiftKey ? -1 : 1);

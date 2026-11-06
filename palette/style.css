@@ -200,3 +200,24 @@ button.pulse { box-shadow: 0 0 0 2px var(--mag); animation: lnPulse 1.2s ease-in
 #side .c-g { width: 56px; } #side .c-g select { width: 54px; }
 @media (max-width: 700px) { #mainCol #view svg { height: max(240px, calc(100vh - 300px)); } }
 #view svg path.part.parked { cursor: grab; }
+
+/* ---------------------------------------------------------------- 2.0.11: Kontextmenü am Teil */
+#partCtx.ctxmenu { position: fixed; z-index: 80; min-width: 220px; max-width: 280px;
+  background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.28); padding: 4px 0; font-size: 12px; }
+#partCtx button.ctxitem { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  width: 100%; margin: 0; padding: 5px 12px; border: 0; border-radius: 0; background: transparent;
+  text-align: left; color: inherit; font: inherit; }
+#partCtx button.ctxitem:hover:not(:disabled) { background: var(--acc); color: var(--accfg); }
+#partCtx button.ctxitem:hover:not(:disabled) .hk { color: var(--accfg); }
+#partCtx button.ctxitem:disabled { opacity: .4; cursor: default; }
+#partCtx .hk { color: var(--mute); font-size: 10px; margin-left: auto; white-space: nowrap; }
+#partCtx .ctxsep { height: 1px; background: var(--line); margin: 4px 0; }
+#partCtx .ctxangle { display: flex; align-items: center; gap: 6px; padding: 4px 12px; }
+#partCtx .ctxangle input { width: 62px; }
+#partCtx .ctxsub { position: relative; }
+#partCtx .ctxsubmenu { display: none; position: absolute; left: 100%; top: -4px; min-width: 190px; max-height: 240px;
+  overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.28); padding: 4px 0; z-index: 81; }
+#partCtx .ctxsub:hover > .ctxsubmenu, #partCtx .ctxsub:focus-within > .ctxsubmenu { display: block; }
+#partCtx .ctxsub.open-left .ctxsubmenu { left: auto; right: 100%; }
