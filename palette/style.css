@@ -70,6 +70,8 @@ fieldset legend .small { float: none; margin-left: 6px; }
 label { display: block; margin: 3px 0; }
 label input[type=number], label input[type=text], label select { width: 100%; display: block; margin-top: 1px; }
 label.check { display: flex; align-items: center; gap: 5px; }
+label.check.hint-convert { background: var(--hint); border: 1px solid var(--hintb); border-radius: 4px; padding: 4px 6px; }
+#sConvHint { margin: 4px 0 0; }
 .row { display: flex; align-items: center; gap: 4px; margin: 3px 0; flex-wrap: wrap; }
 .row2, .row3 { display: flex; gap: 6px; } .row2 > label, .row3 > label { flex: 1; min-width: 0; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-bottom: 4px; }

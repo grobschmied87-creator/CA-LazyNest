@@ -1,4 +1,3 @@
-from ca_core import ca_i18n
 # -*- coding: utf-8 -*-
 """CA LazyNest 2.0.7 – True-Shape-Nesting (Konturschachtelung) für Autodesk Fusion ohne Manufacturing Extension.
 Nachfolger von ContourNest 1.10.0 („Nesting für Macher und faule Typen“).
@@ -63,13 +62,14 @@ def _load_core(alias):
 
 
 CORE = _load_core('lazynest_ca_core')
+ca_i18n = CORE.ca_i18n
 TH = CORE.ca_theme
 REFS = CORE.ca_refs
 F.CC = CORE.ca_compute            # 2.0.3: gemeinsamer computeAll-Stand mit LazySetup
 DIAG = CORE.ca_diag
 PRODUCT = 'lazynest'
 
-VERSION = '2.0.11'                 # EINZIGE Versionsquelle (Manifest, Tooltips, Palette, Protokoll, Projektdateien)
+VERSION = '2.0.13'                 # EINZIGE Versionsquelle (Manifest, Tooltips, Palette, Protokoll, Projektdateien)
 BUILD_DATE = '2026-11-06'
 APP_NAME = 'CA LazyNest'
 L.VERSION = VERSION
@@ -215,7 +215,15 @@ def _part_warnings(res, s):
     if res.get('error'):
         return ['✖ ' + res['error']]
     if res.get('convert_reason'):
-        w.append(('→ wird in Komponente umgewandelt: ' if s['convert'] else '✖ ') + res['convert_reason'])
+        if s.get('convert'):
+            w.append('→ wird in Komponente umgewandelt: ' + res['convert_reason'])
+        elif not A.convert_blocks_part(res, False):
+            extra = _t('warn.multibody_include',
+                       'gewählter Körper wird berücksichtigt. Optional: Häkchen „Körper ohne eigene Komponente '
+                       'umwandeln“, um nur diesen Körper auszulagern (ändert die Konstruktion).')
+            w.append('⚠ ' + res['convert_reason'] + ((' – ' + extra) if extra else ''))
+        else:
+            w.append('✖ ' + res['convert_reason'])
     if 'thickness' in res and abs(res['thickness'] - s['thickness']) > s['tol']:
         w.append('⚠ Dicke %s mm' % G.de(res['thickness'], 1))
     if s['material'] and res.get('material'):
@@ -239,7 +247,7 @@ def _part_warnings(res, s):
 def _part_usable(res, s):
     if res.get('error') or 'outer' not in res:
         return False
-    if res.get('convert_reason') and not s['convert']:
+    if A.convert_blocks_part(res, bool((s or {}).get('convert'))):
         return False
     return True
 
@@ -290,7 +298,8 @@ def _analyse_cached(ent, design, assembly=False):
     if ck in cache:
         hit = dict(cache[ck])
         hit.update(comp=res['comp'], body=res['body'], key=res['key'], convert_reason=res['convert_reason'],
-                   linked=res.get('linked'), link_info=res.get('link_info'))
+                   linked=res.get('linked'), link_info=res.get('link_info'),
+                   needs_convert=res.get('needs_convert'), multibody=res.get('multibody'))
         return hit, True
     res = F.analyze_part(res, 0.1)
     cache[ck] = {k: v for k, v in res.items() if k not in ('entity', 'src', 'count', 'instances')}
@@ -412,7 +421,7 @@ def _group_from_teil_entry(e, design):
         return [{'key': 'A:%s/%s' % (A.comp_key(comp), nat.name), 'comp': comp, 'body': nat,
                  'body_name': nat.name, 'name': (comp.name if comp != design.rootComponent else nat.name),
                  'count': max(1, int(e.get('count') or 1)), 'paths': [A.occ_path(ent)],
-                 'linked': A.link_info(lk) if lk else None}]
+                 'linked': A.link_info(lk) if lk else None, 'solids': _solid_count(comp)}]
     # 2) Fallback: Körper/Komponente aus der Analyse (Linked-Fehler behält body)
     body, comp = res.get('body'), res.get('comp')
     if body is None:
@@ -430,7 +439,22 @@ def _group_from_teil_entry(e, design):
     return [{'key': 'A:%s/%s' % (A.comp_key(comp), L.safe(lambda: nat.name, 'Körper')),
              'comp': comp, 'body': nat, 'body_name': L.safe(lambda: nat.name, 'Körper'),
              'name': name, 'count': max(1, int(e.get('count') or 1)), 'paths': paths,
-             'linked': lk_info if isinstance(lk_info, dict) else None}]
+             'linked': lk_info if isinstance(lk_info, dict) else None, 'solids': _solid_count(comp)}]
+
+
+def _solid_count(comp):
+    try:
+        return sum(1 for b in comp.bRepBodies if b.isSolid)
+    except Exception:
+        return 1
+
+
+def _group_is_root(g, design):
+    try:
+        c = (g or {}).get('comp')
+        return c is not None and design is not None and c == design.rootComponent
+    except Exception:
+        return False
 
 
 def _teil_needs_asm(e):
@@ -552,7 +576,8 @@ def _add_entities(ents, assembly):
                 lk = A.linked_parent(ent)
                 groups = [{'key': 'A:%s/%s' % (A.comp_key(comp), nat.name), 'comp': comp, 'body': nat,
                            'body_name': nat.name, 'name': comp.name if comp != design.rootComponent else nat.name,
-                           'count': 1, 'paths': [A.occ_path(ent)], 'linked': A.link_info(lk) if lk else None}]
+                           'count': 1, 'paths': [A.occ_path(ent)], 'linked': A.link_info(lk) if lk else None,
+                           'solids': _solid_count(comp)}]
             # 2.0.7: alte kind=teil derselben Komponente/Körper entfernen (keine Doppel-Fehlerzeilen)
             _drop_teil_matching_groups(groups)
             for g in groups:
@@ -621,6 +646,8 @@ def _rows(s=None):
                     'grainAngle': res.get('grain_angle'), 'linked': res.get('linked') or '',
                     'outOfDate': bool((res.get('link_info') or {}).get('out_of_date')),
                     'error': res.get('error') or '', 'warnings': w,
+                    'hintConvert': bool(res.get('convert_reason')),
+                    'multibody': bool(res.get('multibody')),
                     'usable': bool(s and _part_usable(res, s) and not any(x.startswith('✖ passt') for x in w))})
     return out
 
@@ -719,7 +746,11 @@ def _prepare_nest(req):
             skip_keys.add(key)
             continue
         if e.get('kind') == 'kopie':
-            pending_copies.append(key)
+            g = e.get('group') or {}
+            if A.copy_needed(g, is_root=_group_is_root(g, design)):
+                pending_copies.append(key)
+            else:
+                L.info('Baugruppenmodus: %s als Original (keine Kopie nötig)', g.get('name') or key)
     copies_log = []
     nest_warn = []
     for k in pending_copies:
@@ -735,13 +766,33 @@ def _prepare_nest(req):
                '; '.join(w['name'] for w in nest_warn))
     if pending_copies:
         made = F.make_copies(design, [_sel()[k]['group'] for k in pending_copies], copies_log)
+        seen_fb = set()
         for key, (g, comp, body, err) in zip(pending_copies, made):
-            if comp is None or body is None:
-                skipped.append({'name': g['name'], 'reason': err or 'Kopie fehlgeschlagen'})
-                skip_keys.add(key)
+            action = A.copy_fallback_action(g, comp, body, err, seen_fb)
+            if action == 'copy':
+                _sel()[key]['res'].update(comp=comp, body=body)
+                _sel()[key]['copy_comp'] = comp
                 continue
-            _sel()[key]['res'].update(comp=comp, body=body)
-            _sel()[key]['copy_comp'] = comp
+            if action == 'fallback':
+                dk = A.fallback_dedupe_key(g)
+                if dk:
+                    seen_fb.add(dk)
+                err_short = err or 'Kopie fehlgeschlagen'
+                if err_short.startswith('Kopie fehlgeschlagen: '):
+                    err_short = err_short[len('Kopie fehlgeschlagen: '):]
+                nest_warn.append({
+                    'name': g.get('name', '?'),
+                    'reason': _t('warn.copy_fallback',
+                                 'Kopie fehlgeschlagen ({err}) – Original wird genestet.', err=err_short)})
+                L.warn('Baugruppenmodus: %s – Fallback auf Original (%s)', g.get('name'), err or err_short)
+                continue
+            if action == 'dup':
+                skip_keys.add(key)
+                L.info('Baugruppenmodus: %s übersprungen (gleiche Komponente bereits als Original)',
+                       (g or {}).get('name') or key)
+                continue
+            skipped.append({'name': (g or {}).get('name', '?'), 'reason': err or 'Kopie fehlgeschlagen'})
+            skip_keys.add(key)
     for key in _sel_order():
         e = _sel()[key]
         if e.get('kind') == 'projekt' or key in skip_keys:
@@ -751,7 +802,7 @@ def _prepare_nest(req):
         if not (ps.get('enabled', True) and int(ps.get('qty', 0)) > 0) or not _part_usable(res, s):
             continue
         comp = res.get('comp')
-        if res.get('convert_reason'):
+        if res.get('convert_reason') and s.get('convert'):
             try:
                 comp, _nb = F.convert_body_to_component(res['body'])
             except Exception as ex:
@@ -828,6 +879,22 @@ def _lang():
         return ca_i18n.normalize_lang(_read_prefs().get('language') or 'de')
     except Exception:
         return 'de'
+
+
+def _t(key, fallback='', **kw):
+    """i18n-Text mit Fallback (fehlender Schlüssel oder Formatfehler → fallback)."""
+    try:
+        s = ca_i18n.t(key, _lang(), **kw)
+        if s and s != key:
+            return s
+    except Exception:
+        pass
+    if fallback and kw:
+        try:
+            return fallback.format(**kw)
+        except Exception:
+            return fallback
+    return fallback
 
 def _i18n_payload():
     return ca_i18n.payload(_lang())

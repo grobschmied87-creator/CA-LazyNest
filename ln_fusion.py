@@ -138,6 +138,29 @@ def resolve_entity(ent, design, assembly=False):
     return r
 
 
+def _solid_rank(b):
+    """Größe eines Körpers für Mehrkörper-Auswahl (Volumen, sonst Fläche, sonst Face-Anzahl)."""
+    for attr in ('volume', 'area'):
+        try:
+            v = float(getattr(b, attr))
+            if v:
+                return v
+        except Exception:
+            pass
+    try:
+        return float(b.faces.count)
+    except Exception:
+        return 0.0
+
+
+def _pick_largest_solid(bodies):
+    if not bodies:
+        return None
+    if len(bodies) == 1:
+        return bodies[0]
+    return max(bodies, key=_solid_rank)
+
+
 def _resolve_entity(ent, design):
     r = {'comp': None, 'body': None, 'key': None, 'convert_reason': '', 'error': '', 'name': '?'}
     occ = adsk.fusion.Occurrence.cast(ent)
@@ -153,10 +176,14 @@ def _resolve_entity(ent, design):
             pass
         if child_bodies:
             r['error'] = 'Komponente hat Unterkomponenten mit Körpern – bitte einzelne Teilkomponente wählen'
-        elif len(bodies) != 1:
-            r['error'] = 'Komponente enthält %d Volumenkörper (erwartet: genau 1)' % len(bodies)
+        elif not bodies:
+            r['error'] = 'Komponente enthält 0 Volumenkörper (erwartet: mindestens 1)'
         else:
-            r.update(comp=comp, body=bodies[0], key=_comp_key(comp))
+            body = _pick_largest_solid(bodies)
+            if len(bodies) > 1:
+                r['convert_reason'] = 'Komponente „%s“ enthält %d Körper' % (comp.name, len(bodies))
+                r['multibody'] = len(bodies)
+            r.update(comp=comp, body=body, key=_comp_key(comp))
         return r
     body = adsk.fusion.BRepBody.cast(ent)
     if not body:
@@ -166,21 +193,21 @@ def _resolve_entity(ent, design):
     comp = native.parentComponent
     r['name'] = native.name
     r['body'] = native
-    if comp == design.rootComponent:
-        r['convert_reason'] = 'Körper liegt in der Wurzelkomponente'
-    else:
-        solids = [b for b in comp.bRepBodies if b.isSolid]
-        if len(solids) > 1:
-            r['convert_reason'] = 'Komponente „%s“ enthält %d Körper' % (comp.name, len(solids))
-        else:
-            r['name'] = comp.name
-    if r['convert_reason']:
-        r['key'] = 'B:' + (native.entityToken or native.name)
-    else:
-        r['comp'] = comp
-        r['key'] = _comp_key(comp)
     if not native.isSolid:
         r['error'] = 'Körper ist kein Volumenkörper'
+        return r
+    if comp == design.rootComponent:
+        r['convert_reason'] = 'Körper liegt in der Wurzelkomponente'
+        r['needs_convert'] = True
+        r['key'] = 'B:' + (native.entityToken or native.name)
+        return r
+    solids = [b for b in comp.bRepBodies if b.isSolid]
+    r['comp'] = comp
+    r['key'] = _comp_key(comp)
+    r['name'] = comp.name
+    if len(solids) > 1:
+        r['convert_reason'] = 'Komponente „%s“ enthält %d Körper' % (comp.name, len(solids))
+        r['multibody'] = len(solids)
     return r
 
 
@@ -2018,16 +2045,27 @@ def _add_body_copy(comp, src_body, parametric, name):
 
 def make_copies(design, groups, log):
     """Baugruppenmodus: je Gruppe (ln_assembly.collect) eine lokale Komponente mit Körper-Kopie.
-    Vorhandene Kopie mit gleichem Quellschlüssel wird wiederverwendet. -> [(group, comp, body | None, fehler)]"""
+    Vorhandene Kopie mit gleichem Quellschlüssel wird wiederverwendet. -> [(group, comp, body | None, fehler)]
+    2.0.13: Fehler beim Anlegen der Sammelkomponente (z. B. CIRCULAR_DEPENDENCY) nur einmal versuchen."""
     parametric = is_parametric(design)
     have = copy_components(design)
     out = []
     ro = None
+    root_err = None
     for g in groups:
         comp = have.get(g['key'])
         try:
             if comp is None:
-                ro = ro or copy_root(design)
+                if root_err:
+                    raise RuntimeError(root_err)
+                try:
+                    ro = ro or copy_root(design)
+                except Exception as e:
+                    root_err = _short_err(e)
+                    raise
+                if ro is None:
+                    root_err = 'Sammelkomponente konnte nicht angelegt werden'
+                    raise RuntimeError(root_err)
                 _cp('Baugruppenmodus: Kopie %s anlegen', g.get('name'))
                 occ = ro.component.occurrences.addNewComponent(_identity())
                 comp = occ.component
@@ -2042,7 +2080,10 @@ def make_copies(design, groups, log):
             out.append((g, comp, body, ''))
         except Exception as e:
             _L.exc('Kopie %s' % g.get('name'))
-            out.append((g, None, None, 'Kopie fehlgeschlagen: %s' % _short_err(e)))
+            msg = _short_err(e)
+            if A.is_circular_dependency(e) or A.is_circular_dependency(msg):
+                root_err = root_err or msg
+            out.append((g, None, None, 'Kopie fehlgeschlagen: %s' % msg))
     return out
 
 

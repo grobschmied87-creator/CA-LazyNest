@@ -2,7 +2,7 @@
 
 Fusion 360 nesting add-in for sheet/part layouts: packing, grain, stock library, optional CAM hand-off.
 
-**Version:** 2.0.10 · **License:** MIT · Author: Chris Adam / Chris Adam Modellbau
+**Version:** 2.0.13 · **License:** MIT · Author: Chris Adam / Chris Adam Modellbau
 
 ## Features
 - Nesting with spacing, rotation/grain options

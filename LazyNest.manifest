@@ -4,9 +4,9 @@
     "id": "0210768D-A566-4406-933D-992EE323750A",
     "author": "Chris Adam Modellbau",
     "description": {
-        "": "CA LazyNest v2.0.11 (vormals ContourNest) – True-Shape-Nesting von Plattenteilen auf Rohteile in EINEM Fenster (Vorschau mit Auswahl/Platte links, Nesting, Ergebnis), hell/dunkel nach Fusion-Farbschema, Baugruppenmodus für verknüpfte Komponenten, CAM-Setup je Rohteil. Lizenz gemeinsam mit CA LazySetup (CA Tools)."
+        "": "CA LazyNest v2.0.13 (vormals ContourNest) – True-Shape-Nesting von Plattenteilen auf Rohteile in EINEM Fenster (Vorschau mit Auswahl/Platte links, Nesting, Ergebnis), hell/dunkel nach Fusion-Farbschema, Baugruppenmodus für verknüpfte Komponenten, CAM-Setup je Rohteil. Lizenz gemeinsam mit CA LazySetup (CA Tools)."
     },
-    "version": "2.0.11",
+    "version": "2.0.13",
     "runOnStartup": true,
     "supportedOS": "windows|mac",
     "editEnabled": true

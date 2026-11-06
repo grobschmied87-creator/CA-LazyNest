@@ -21,7 +21,7 @@
 
   <header id="hdr">
     <img id="logo" src="img/logo_light.svg" alt="CA LazyNest">
-    <div id="appname"><b>CA LazyNest</b> <span id="ver" class="muted">v2.0.11</span></div>
+    <div id="appname"><b>CA LazyNest</b> <span id="ver" class="muted">v2.0.13</span></div>
     <button id="btnInfo" class="icon" title="Info, Lizenz, Diagnose"><svg><use href="#i-info"/></svg></button>
   </header>
 
@@ -58,7 +58,8 @@
       </fieldset>
       <fieldset>
         <legend>Teile</legend>
-        <label class="check" title="Körper in der Wurzel oder in Mehrkörper-Komponenten werden per „Komponente aus Körper“ in eine eigene Komponente verschoben (ändert die Konstruktion!)"><input id="sConv" type="checkbox"> Körper ohne eigene Komponente umwandeln</label>
+        <label class="check" id="sConvLab" title="Körper in der Wurzel oder in Mehrkörper-Komponenten werden per „Komponente aus Körper“ in eine eigene Komponente verschoben (ändert die Konstruktion!)"><input id="sConv" type="checkbox"> <span data-i18n="label.convert_bodies">Körper ohne eigene Komponente umwandeln</span></label>
+        <p id="sConvHint" class="hint" hidden data-i18n="hint.convert_bodies">Mehrkörper-Teil erkannt: wird mitgenestet. Häkchen nur setzen, wenn der gewählte Körper eine eigene Komponente werden soll (ändert die Konstruktion).</p>
       </fieldset>
       <button id="btnRecalc" class="primary wide" title="Mit diesen Werten neu berechnen (fixierte Teile bleiben)">▶ Neu berechnen</button>
     </section>

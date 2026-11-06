@@ -2,7 +2,7 @@
 
 Fusion-360-Nesting-Add-in für Blech-/Plattenlayouts: Packen, Maserung, Rohteil-Bibliothek, optional CAM.
 
-**Version:** 2.0.10 · **Lizenz:** MIT · Autor: Chris Adam / Chris Adam Modellbau
+**Version:** 2.0.13 · **Lizenz:** MIT · Autor: Chris Adam / Chris Adam Modellbau
 
 ## Funktionen
 - Nesting mit Abständen, Drehung/Maserung

@@ -103,7 +103,7 @@ def collect(occs, include_hidden=False, max_depth=32):
                 nb = sum(1 for x in _items(_g(lambda: comp.bRepBodies)) if _g(lambda: x.isSolid, False))
                 name = _g(lambda: comp.name, '?') + ('' if nb <= 1 else ' – ' + bname)
                 g = {'key': key, 'comp': comp, 'body': b, 'body_name': bname, 'name': name, 'count': 0,
-                     'paths': [], 'linked': link_info(lk) if lk is not None else None}
+                     'paths': [], 'linked': link_info(lk) if lk is not None else None, 'solids': nb}
                 groups[key] = g
                 order.append(key)
                 if lk is not None:
@@ -117,3 +117,62 @@ def collect(occs, include_hidden=False, max_depth=32):
     for o in occs:
         visit(o, 0)
     return [groups[k] for k in order], stats
+
+def is_circular_dependency(err):
+    """True, wenn die Meldung Fusion CIRCULAR_DEPENDENCY / zirkuläre Abhängigkeit enthält."""
+    if err is None:
+        return False
+    s = str(err).upper()
+    return 'CIRCULAR_DEPENDENCY' in s or 'CIRCULAR DEPENDENCY' in s or 'ZIRKUL' in s
+
+
+def copy_needed(group, is_root=False):
+    """Asm-Kopien nur wenn nötig: verknüpft, kein parent-comp, Körper in der Wurzel, oder Mehrkörper.
+    Lokale 1-Körper-Teile werden als Original genestet (wie ContourNest / Non-Asm).
+    is_root: parent ist die Wurzelkomponente (comp ist dann gesetzt, im Unterschied zu comp is None)."""
+    if not isinstance(group, dict):
+        return False
+    if group.get('linked'):
+        return True
+    if group.get('comp') is None:
+        return True
+    if is_root:
+        return True
+    try:
+        return int(group.get('solids') or 1) > 1
+    except Exception:
+        return False
+
+
+def convert_blocks_part(res, convert_on=False):
+    """convert_reason blockt nur ohne parent-comp (Wurzelkörper) bzw. needs_convert.
+    Mehrkörper mit zugeordneter Komponente werden ohne Convert mitgenommen."""
+    if not res or not res.get('convert_reason') or convert_on:
+        return False
+    if res.get('needs_convert'):
+        return True
+    return res.get('comp') is None
+
+
+def fallback_dedupe_key(group):
+    """Stabiler Schlüssel zum Deduplizieren von Original-Fallbacks derselben Komponente."""
+    if not isinstance(group, dict):
+        return ''
+    comp = group.get('comp')
+    if comp is not None:
+        return comp_key(comp) or (group.get('key') or '')
+    return group.get('key') or ''
+
+
+def copy_fallback_action(group, copy_comp, copy_body, err=None, seen_keys=None):
+    """Nach make_copies: 'copy' (ok) | 'fallback' (Original) | 'dup' (gleiche Comp schon da) | 'skip'."""
+    if copy_comp is not None and copy_body is not None:
+        return 'copy'
+    if not isinstance(group, dict):
+        return 'skip'
+    if group.get('comp') is None or group.get('body') is None:
+        return 'skip'
+    key = fallback_dedupe_key(group)
+    if seen_keys is not None and key and key in seen_keys:
+        return 'dup'
+    return 'fallback'

@@ -128,7 +128,7 @@
       cb.onchange = function () { r.enabled = cb.checked; tr.classList.toggle('off', !r.enabled); summary(); dirty(); };
       td = el('td', { className: 'c-name' }, tr);
       var nm = el('div', { className: 'nm', title: r.name }, td, r.name);
-      if (r.kind === 'kopie') el('span', { className: 'tag', title: 'Baugruppenmodus: wird als Körper-Kopie genestet' }, nm, 'Kopie');
+      if (r.kind === 'kopie') el('span', { className: 'tag', title: 'Baugruppenmodus: lokale Kopie nur wenn nötig (z. B. verknüpft)' }, nm, 'Kopie');
       if (r.kind === 'projekt') el('span', { className: 'tag', title: 'aus dem gespeicherten Projekt' }, nm, 'Projekt');
       var meta = [];
       if (r.dims) meta.push(fmt(r.dims[0], 0) + ' × ' + fmt(r.dims[1], 0) + ' mm');
@@ -170,6 +170,22 @@
       lh.hidden = false;
     } else lh.hidden = true;
     $('btnRefreshCopies').hidden = !(kopien || (S.session && S.session.hasCopies));
+    hintConvert(S.rows);
+  }
+
+  function hintConvert(rows) {
+    var need = (rows || []).some(function (r) { return !!(r.hintConvert || r.multibody); });
+    var inp = $('sConv');
+    var lab = inp && (inp.closest ? inp.closest('label') : inp.parentNode);
+    if (lab && lab.classList) lab.classList.toggle('hint-convert', !!need);
+    var h = $('sConvHint');
+    if (h) {
+      h.hidden = !need;
+      if (window.CA_I18n) {
+        var tx = CA_I18n.t('hint.convert_bodies');
+        if (tx && tx !== 'hint.convert_bodies') h.textContent = tx;
+      }
+    }
   }
 
   function dirty() { if (S.job && !S.job.draft) $('btnNest').classList.add('pulse'); }
